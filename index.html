@@ -1,0 +1,157 @@
+<!doctype html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Socket.IO chat</title>
+    <style>
+      body {
+        font: 13px Helvetica, Arial;
+        background: #254162;
+      }
+
+      .scrollbar-grad::-webkit-scrollbar-track {
+        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+        background-color: #F5F5F5;
+        border-radius: 10px; }
+
+        .scrollbar-grad::-webkit-scrollbar-thumb {
+        border-radius: 10px;
+        -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+        background-image: -webkit-gradient(linear, left bottom, left top, from(#487FC1), to(#072B55));
+        background-image: -webkit-linear-gradient(bottom, #487FC1 0%, #072B55 100%);
+        background-image: linear-gradient(to top, #487FC1 0%, #072B55 100%); }
+
+        .scrollbar-grad {
+        scrollbar-color: #330867 #F5F5F5;
+        }
+
+        .scrollbar-grad::-webkit-scrollbar {
+        width: 12px;
+        background-color: #F5F5F5; }
+    </style>
+</head>
+
+<body>
+<div class="container" style="height: 700px;">
+
+    <div class="mt-2 mb-1 text-center text-white ">
+        <h1>In touch</h1>
+    </div>
+
+    <div class="my-1 p-1 text-right">
+        <span id="schet" class="badge badge-pill badge-info">Пользователей: 0</span>
+    </div>
+
+    <div id="allMessages" class="h-75 p-2 mx-auto scrollbar scrollbar-grad"  style="overflow: auto; background-color: white">
+        <!-- Message list-->
+        <div id="userPrint"></div>
+    </div>
+
+    <div class="container py-3">
+        <!-- Message for and name form-->
+        <form id="mesNameForm">
+
+            <div class="form-group row">
+                <div class="col">
+                    <input type="text" class="form-control" name="userName" autocomplete="off" id="userName" placeholder="Введите имя" value="Nemo">
+                </div>
+                <div class="col text-white">
+                    <input id ="sendNameBtn" class="btn btn-info" type="submit" value="Изменить имя">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-9">
+                    <input id="mesForm" name="mesForm" autocomplete="off" class="form-control" placeholder="Сообщение">
+                </div>
+                <div class="col">
+                    <input id ="sendMesBtn" class="btn btn-info" type="submit" value="Отправить">
+                </div>
+            </div>
+        </form>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script>
+        $(function () {
+            var socket = io();
+            var formMN = $("#mesNameForm");
+		    var usName = $("#userName");
+		    var mesF = $("#mesForm");
+		    var allMes = $("#allMessages");
+		    var sendMesB = $("#sendMesBtn");
+		    var sendNameB = $("#sendNameBtn");
+		    var usPr = $("#userPrint");
+		    var oldName = usName.val();
+		    var onL = 0;
+
+            sendMesB.click((e) => {
+                e.preventDefault();
+                socket.emit('new message', {mesText: mesF.val(), className: alertClass
+                });
+                mesF.val('');
+            });
+
+            sendNameB.click((e) => {
+                e.preventDefault();
+                socket.emit('new name', { username: usName.val() });
+            });
+
+            socket.on("new name1", data => {
+                $("#allMessages").append("<p>" + " Пользователь " + oldName  + " сменил имя на " + data.username + "</p>");
+                oldName = data.username;
+            });
+
+            var min = 1;
+            var max = 6;
+            var random = Math.floor(Math.random() * (max - min)) + min;
+            var alertClass;
+            switch (random) {
+            case 1:
+                alertClass = "secondary";
+                break;
+            case 2:
+                alertClass = "danger";
+                break;
+            case 3:
+                alertClass = "success";
+                break;
+            case 4:
+                alertClass = "warning";
+                break;
+            case 5:
+                alertClass = "info";
+                break;
+            case 6:
+                alertClass = "light";
+                break;
+            }
+
+            socket.on('add message', data =>{
+                usPr.html("");
+                mesF.val("");
+                $("#allMessages").append("<div class='alert alert-" + data.className + "'<b>" + data.username + "</b>: " + data.mesText + "</div>");
+                onL = data.online;
+                $("#schet").html(  "Пользователей: " + onL );
+            });
+
+            mesF.bind("keypress", () => {
+                socket.emit("typing");
+            });
+
+            socket.on("typing", data => {
+                usPr.html("<p><i>" + data.username + " пишет..." + "</i></p>");
+            });
+
+            socket.on("user left", data => {
+                onL = data.online;
+                $("#allMessages").append("<p>" + data.username + " покинул чат" + "</p>");
+                $("#schet").html(  "Пользователей: " + onL );
+            });
+
+        });
+        </script>
+</div>
+</div>
+</body>
+</html>

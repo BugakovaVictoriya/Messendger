@@ -1,0 +1,9 @@
+{
+  "name": "messenger_chat",
+  "version": "0.0.1",
+  "description": "Messenger - laboratory work of Bugakova Victoria ivt - 42",
+  "dependencies": {
+    "express": "^4.15.2",
+    "socket.io": "^3.0.3"
+  }
+}
